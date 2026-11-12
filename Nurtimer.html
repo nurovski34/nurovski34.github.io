@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nur’un Balkıması - Zaman Görselleştirici</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background: linear-gradient(135deg, #235a5a 0%, #4a7c99 35%, #bdbdca 70%, #f5bdaa 100%);
+            background-size: 200% 200%;
+            animation: gradientBG 15s ease infinite;
+            color: #f7efd2;
+        }
+
+        @keyframes gradientBG {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        .glass-panel {
+            background: rgba(35, 90, 90, 0.25);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+        }
+
+        .glow-effect {
+            box-shadow: 0 0 50px rgba(255, 119, 62, 0.15);
+        }
+
+        @keyframes pulse-gentle {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(0.985); }
+        }
+
+        .breathing {
+            animation: pulse-gentle 4s infinite ease-in-out;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-between p-6 selection:bg-[#ff773e] selection:text-white">
+
+    <!-- Üst Bilgi / Durum Çubuğu -->
+    <header class="w-full max-w-xl flex justify-between items-center glass-panel px-6 py-4 rounded-2xl glow-effect transition-opacity duration-500">
+        <div>
+            <h1 class="text-lg font-bold tracking-wide text-[#f5bdaa]">Nur’un Balkıması</h1>
+            <p class="text-xs text-[#bdbdca]">Zamanı somutlaştıran odak çapası</p>
+        </div>
+        <div class="flex items-center space-x-2">
+            <!-- Ses Kontrol / Susturma Butonu -->
+            <button id="soundToggle" onclick="toggleSound()" class="text-xs bg-[#4a7c99]/40 hover:bg-[#4a7c99] text-[#f7efd2] px-3 py-2 rounded-xl transition-all border border-[#4a7c99]/50" title="Ses Durumu">
+                Ses: Açık
+            </button>
+            <button id="zenToggle" onclick="toggleZen()" class="text-xs bg-[#4a7c99]/40 hover:bg-[#4a7c99] text-[#f7efd2] px-3 py-2 rounded-xl transition-all border border-[#4a7c99]/50">
+                Zen Modu: Kapalı
+            </button>
+        </div>
+    </header>
+
+    <!-- Ana İçerik Alanı -->
+    <main class="w-full max-w-xl flex flex-col items-center justify-center my-auto space-y-6 py-4">
+        
+        <!-- Odak Çapa Metni -->
+        <div class="w-full text-center">
+            <input type="text" id="focusGoal" placeholder="Şu anki odak noktan nedir?" 
+                class="w-full max-w-md bg-transparent text-center text-lg font-medium text-[#f5bdaa] placeholder-[#bdbdca]/60 border-b border-[#4a7c99]/50 focus:border-[#ff773e] focus:outline-none pb-2 transition-colors">
+        </div>
+
+        <!-- Görsel Daire Saat / Progress Ring -->
+        <div class="relative flex items-center justify-center breathing">
+            <svg class="w-72 h-72 transform -rotate-90">
+                <circle cx="144" cy="144" r="120" stroke="rgba(35, 90, 90, 0.4)" stroke-width="16" fill="transparent" />
+                <circle id="progressRing" cx="144" cy="144" r="120" stroke="#4a7c99" stroke-width="16" fill="transparent" 
+                    stroke-dasharray="753.98" stroke-dashoffset="0" stroke-linecap="round" class="transition-all duration-1000 ease-linear" />
+            </svg>
+            <div class="absolute flex flex-col items-center justify-center text-center">
+                <span id="digitalClock" class="text-4xl font-bold tracking-tight text-[#f7efd2]">00:00</span>
+                <span id="timeRemaining" class="text-xs text-[#bdbdca] mt-1 font-medium">Süre Seçin</span>
+            </div>
+        </div>
+
+        <!-- Esnek Süre Seçenekleri (5, 10, 15, 25, 50, 60 dk) -->
+        <div id="durationSelector" class="flex flex-wrap justify-center gap-1.5 glass-panel p-2 rounded-2xl max-w-md">
+            <button onclick="setDuration(5, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all">5d</button>
+            <button onclick="setDuration(10, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all">10d</button>
+            <button onclick="setDuration(15, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all">15d</button>
+            <button onclick="setDuration(25, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#4a7c99] text-white transition-all shadow-md">25d</button>
+            <button onclick="setDuration(50, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all">50d</button>
+            <button onclick="setDuration(60, this)" class="px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all">60d</button>
+        </div>
+
+        <!-- Kontrol Butonları -->
+        <div class="flex space-x-3">
+            <button onclick="togglePlay()" id="btnPlay" class="px-5 py-2 text-xs font-semibold rounded-xl bg-[#ff773e] text-white hover:bg-[#ff773e]/80 transition-all shadow-lg">Başlat</button>
+            <button onclick="resetTimer()" class="px-5 py-2 text-xs font-semibold rounded-xl glass-panel text-[#bdbdca] hover:text-[#f7efd2] transition-all">Sıfırla</button>
+        </div>
+
+    </main>
+
+    <!-- Alt Bilgi -->
+    <footer id="footerNote" class="w-full max-w-xl text-center text-xs text-[#bdbdca] py-4 border-t border-white/10 transition-opacity duration-500">
+        İpucu: Zaman akıp gitmiyor, renk değiştirerek tükeniyor. Sadece bir sonraki adıma odaklan.
+    </footer>
+
+    <!-- JavaScript Mantığı -->
+    <script>
+        let totalSeconds = 25 * 60;
+        let secondsLeft = totalSeconds;
+        let isRunning = false;
+        let isZenActive = false;
+        let isSoundEnabled = true;
+        const circumference = 753.98; // 2 * pi * r (r=120)
+
+        // Web Audio API ile tatlı, çifte kuş cıvıltısı simülasyonu
+        function playBirdChirp() {
+            if (!isSoundEnabled) return;
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Kuş cıvıltısı için hızlı frekans modülasyonu (chirp efekti)
+                function chirp(startTime, baseFreq) {
+                    const osc = audioCtx.createOscillator();
+                    const gain = audioCtx.createGain();
+                    
+                    osc.type = 'sine';
+                    // Frekansı hızla yukarı aşağı kaydırarak cıvıltı sesi elde ediyoruz
+                    osc.frequency.setValueAtTime(baseFreq, audioCtx.currentTime + startTime);
+                    osc.frequency.linearRampToValueAtTime(baseFreq + 1200, audioCtx.currentTime + startTime + 0.08);
+                    osc.frequency.linearRampToValueAtTime(baseFreq + 400, audioCtx.currentTime + startTime + 0.15);
+
+                    gain.gain.setValueAtTime(0.08, audioCtx.currentTime + startTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + startTime + 0.18);
+
+                    osc.connect(gain);
+                    gain.connect(audioCtx.destination);
+
+                    osc.start(audioCtx.currentTime + startTime);
+                    osc.stop(audioCtx.currentTime + startTime + 0.18);
+                }
+
+                // Peş peşe neşeli iki küçük cıvıltı tonu
+                chirp(0.0, 2200);
+                chirp(0.12, 2800);
+                chirp(0.28, 2400);
+
+            } catch (e) {
+                console.log("Audio context not allowed yet.");
+            }
+        }
+
+        function toggleSound() {
+            isSoundEnabled = !isSoundEnabled;
+            const btn = document.getElementById('soundToggle');
+            btn.innerText = isSoundEnabled ? "Ses: Açık" : "Ses: Kapalı";
+            btn.className = isSoundEnabled 
+                ? "text-xs bg-[#4a7c99]/40 hover:bg-[#4a7c99] text-[#f7efd2] px-3 py-2 rounded-xl transition-all border border-[#4a7c99]/50"
+                : "text-xs bg-red-900/40 hover:bg-red-900 text-red-200 px-3 py-2 rounded-xl transition-all border border-red-500/50";
+        }
+
+        function setDuration(minutes, btnElement) {
+            isRunning = false;
+            document.getElementById('btnPlay').innerText = "Başlat";
+            totalSeconds = minutes * 60;
+            secondsLeft = totalSeconds;
+
+            const buttons = document.querySelectorAll('#durationSelector button');
+            buttons.forEach(b => {
+                b.className = "px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#235a5a] text-[#f7efd2] hover:bg-[#4a7c99] transition-all";
+            });
+            btnElement.className = "px-3 py-1.5 text-xs font-semibold rounded-xl bg-[#4a7c99] text-white transition-all shadow-md";
+
+            updateDisplay();
+        }
+
+        function togglePlay() {
+            isRunning = !isRunning;
+            const btn = document.getElementById('btnPlay');
+            btn.innerText = isRunning ? "Duraklat" : "Devam Et";
+        }
+
+        function resetTimer() {
+            isRunning = false;
+            secondsLeft = totalSeconds;
+            document.getElementById('btnPlay').innerText = "Başlat";
+            updateDisplay();
+        }
+
+        function toggleZen() {
+            isZenActive = !isZenActive;
+            const header = document.querySelector('header');
+            const footer = document.getElementById('footerNote');
+            const durationSelector = document.getElementById('durationSelector');
+            const btn = document.getElementById('zenToggle');
+
+            if (isZenActive) {
+                header.style.opacity = '0.08';
+                footer.style.opacity = '0.08';
+                durationSelector.style.opacity = '0.1';
+                btn.innerText = "Zen Modu: Açık";
+            } else {
+                header.style.opacity = '1';
+                footer.style.opacity = '1';
+                durationSelector.style.opacity = '1';
+                btn.innerText = "Zen Modu: Kapalı";
+            }
+        }
+
+        function updateDisplay() {
+            const digitalClock = document.getElementById('digitalClock');
+            const progressRing = document.getElementById('progressRing');
+            const timeRemaining = document.getElementById('timeRemaining');
+
+            if (isRunning && secondsLeft > 0) {
+                secondsLeft--;
+                if (secondsLeft === 0) {
+                    isRunning = false;
+                    document.getElementById('btnPlay').innerText = "Yeniden Başlat";
+                    playBirdChirp();
+                }
+            }
+
+            const mins = Math.floor(secondsLeft / 60);
+            const secs = secondsLeft % 60;
+            digitalClock.innerText = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+            const ratio = secondsLeft / totalSeconds;
+            progressRing.style.strokeDashoffset = circumference - (ratio * circumference);
+
+            if (ratio > 0.6) {
+                progressRing.style.stroke = '#4a7c99'; 
+            } else if (ratio > 0.35) {
+                progressRing.style.stroke = '#bdbdca'; 
+            } else if (ratio > 0.15) {
+                progressRing.style.stroke = '#f5bdaa'; 
+            } else {
+                progressRing.style.stroke = '#ff773e'; 
+            }
+
+            timeRemaining.innerText = isRunning ? "Odak Akışı Aktif" : (secondsLeft === 0 ? "Süre Tamamlandı" : "Başlamaya Hazır");
+        }
+
+        setInterval(updateDisplay, 1000);
+        updateDisplay();
+    </script>
+</body>
+</html>
